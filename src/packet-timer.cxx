@@ -22,73 +22,79 @@
 #define TH_OFF(th)  ((th)->th_x2)
 #define SIZE_ETHER  14
 
-struct options {
-  char label[256];
-  char protocol[256];
-  struct in_addr selfaddr;
+class options {
+public:
+    char label[256];
+    char protocol[256];
+    in_addr selfaddr;
 };
 
-struct dnstimer {
-  char label[256];
-  unsigned short id;
-  struct timeval start;
-  struct timeval auth;
+class dnstimer {
+public:
+    char label[256];
+    unsigned short id;
+    timeval start;
+    timeval auth;
 };
 
-struct httptimer {
-  char label[256];
-  struct timeval start;
-  struct timeval send;
-  struct timeval ack;
-  struct timeval recv;
-  struct timeval end;
+class httptimer {
+public:
+    char label[256];
+    timeval start;
+    timeval send;
+    timeval ack;
+    timeval recv;
+    timeval end;
 };
 
-struct ftptimer {
-  char label[256];
-  struct timeval start;
-  struct timeval ack;
-  struct timeval cmd;
-  struct timeval end;
+class ftptimer {
+public:
+    char label[256];
+    timeval start;
+    timeval ack;
+    timeval cmd;
+    timeval end;
 };
 
-struct cifstimer {
-  char label[256];
-  struct timeval start;
-  struct timeval ack;
-  struct timeval send72;
-  struct timeval recv72;
-  struct timeval send73;
-  struct timeval recv73;
-  struct timeval sendtree;
-  struct timeval recvtree;
-  struct timeval fin;
+class cifstimer {
+public:
+    char label[256];
+    timeval start;
+    timeval ack;
+    timeval send72;
+    timeval recv72;
+    timeval send73;
+    timeval recv73;
+    timeval sendtree;
+    timeval recvtree;
+    timeval fin;
 };
 
-struct mapitimer {
-  char label[256];
-  struct timeval start;
-  struct timeval ack;
-  struct timeval end;
-  struct timeval dce1streq;
-  struct timeval dce1stresp;
-  struct timeval newdcechain;
-  struct timeval dcechainclose;
-  int chaincount;
-  long unsigned int chain_duration;
+class mapitimer {
+public:
+    char label[256];
+    timeval start;
+    timeval ack;
+    timeval end;
+    timeval dce1streq;
+    timeval dce1stresp;
+    timeval newdcechain;
+    timeval dcechainclose;
+    int chaincount;
+    long unsigned int chain_duration;
 };
 
 
 
-struct httptimer *cur_http_timer = NULL;
-struct dnstimer  *cur_dns_timer  = NULL;
-struct ftptimer  *cur_ftp_timer  = NULL;
-struct cifstimer *cur_cifs_timer  = NULL;
-struct mapitimer *cur_mapi_timer  = NULL;
+httptimer *cur_http_timer = NULL;
+dnstimer  *cur_dns_timer  = NULL;
+ftptimer  *cur_ftp_timer  = NULL;
+cifstimer *cur_cifs_timer  = NULL;
+mapitimer *cur_mapi_timer  = NULL;
 
-struct mapitimer* new_mapi_timer(const char* label)
+mapitimer* new_mapi_timer(const char* label)
 {
-  struct mapitimer *tm = (struct mapitimer*)malloc(sizeof(struct mapitimer));
+  mapitimer *tm = (mapitimer*)malloc(sizeof(mapitimer));
   if(tm==NULL)
   {
     return NULL;
@@ -104,9 +110,9 @@ struct mapitimer* new_mapi_timer(const char* label)
   return tm;
 }
 
-struct httptimer* new_http_timer(const char* label)
+httptimer* new_http_timer(const char* label)
 {
-  struct httptimer *tm = (struct httptimer*)malloc(sizeof(struct httptimer));
+  httptimer *tm = (httptimer*)malloc(sizeof(httptimer));
   if(tm==NULL)
   {
     return NULL;
@@ -120,9 +126,9 @@ struct httptimer* new_http_timer(const char* label)
   return tm;
 }
 
-struct ftptimer* new_ftp_timer(const char* label)
+ftptimer* new_ftp_timer(const char* label)
 {
-  struct ftptimer *tm = (struct ftptimer*)malloc(sizeof(struct ftptimer));
+  ftptimer *tm = (ftptimer*)malloc(sizeof(ftptimer));
   if(tm==NULL)
   {
     return NULL;
@@ -135,9 +141,9 @@ struct ftptimer* new_ftp_timer(const char* label)
   return tm;
 }
 
-struct dnstimer* new_dns_timer(const char* label)
+dnstimer* new_dns_timer(const char* label)
 {
-  struct dnstimer *tm=(struct dnstimer*)malloc(sizeof(struct dnstimer));
+  dnstimer *tm=(dnstimer*)malloc(sizeof(dnstimer));
   if (tm==NULL)
   {
     return NULL;
@@ -149,9 +155,9 @@ struct dnstimer* new_dns_timer(const char* label)
   return tm;
 }
 
-struct cifstimer* new_cifs_timer(const char* label)
+cifstimer* new_cifs_timer(const char* label)
 {
-  struct cifstimer *tm=(struct cifstimer*)malloc(sizeof(struct cifstimer));
+  cifstimer *tm=(cifstimer*)malloc(sizeof(cifstimer));
   if (tm==NULL)
   {
     return NULL;
@@ -171,7 +177,7 @@ struct cifstimer* new_cifs_timer(const char* label)
 }
 
 /* from the glibc manual */
-int timeval_subtract (struct timeval *result, struct timeval *x, struct timeval *y)
+int timeval_subtract (timeval *result, timeval *x, timeval *y)
 {
   /* Perform the carry for the later subtraction by updating y. */
   if (x->tv_usec < y->tv_usec) {
@@ -194,9 +200,9 @@ int timeval_subtract (struct timeval *result, struct timeval *x, struct timeval 
   return x->tv_sec < y->tv_sec;
 }
 
-int print_http_timings(struct options *opts,struct httptimer *tm)
+int print_http_timings(options *opts,httptimer *tm)
 {
-  struct timeval tmp;
+  timeval tmp;
   char timestr[64];
   timeval_subtract(&tmp,&(tm->ack),&(tm->start));
   snprintf(timestr,63,"%ld.%.6ld",tmp.tv_sec,(long)tmp.tv_usec);
@@ -278,7 +284,7 @@ void print_hex_ascii_line(const u_char *payload, int len, int offset)
   return;
 }
 
-void print_tcpflags(const struct tcphdr *tcph)
+void print_tcpflags(const tcphdr *tcph)
 {
   if(tcph->urg)
   { printf("U"); }
@@ -337,23 +343,23 @@ void print_payload(const u_char *payload, int len)
   return;
 }
 
-int handle_http(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
+int handle_http(u_char* args, const pcap_pkthdr* pkthdr, const u_char* packet)
 {
-  const struct ether_header *ethh;
-  const struct ip *iph;
-  const struct tcphdr *tcph;
-  const struct timeval ts = pkthdr->ts;
-  struct options *opts = (struct options*)(args);
+  const ether_header *ethh;
+  const ip *iph;
+  const tcphdr *tcph;
+  const timeval ts = pkthdr->ts;
+  options *opts = (options*)(args);
   int size_ip;
   int size_tcp;
   int size_payload;
   const char *payload;
 
 
-  ethh=(struct ether_header*)(packet);
-  iph=(struct ip*)(packet+14); /* sizeof(struct ether_header) */
+  ethh=(ether_header*)(packet);
+  iph=(ip*)(packet+14); /* sizeof(ether_header) */
   size_ip = IP_HL(iph)*4;
-  tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
+  tcph = (tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
   payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
@@ -417,9 +423,9 @@ int handle_http(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   return 1;
 }
 
-int print_dns_timings(struct options *opts,struct dnstimer *tm)
+int print_dns_timings(options *opts,dnstimer *tm)
 {
-  struct timeval tmp;
+  timeval tmp;
   char timestr[64];
   timeval_subtract(&tmp,&(tm->auth),&(tm->start));
   snprintf(timestr,63,"%ld.%.6ld",tmp.tv_sec,(long)tmp.tv_usec);
@@ -428,14 +434,14 @@ int print_dns_timings(struct options *opts,struct dnstimer *tm)
   return 1;
 }
 
-int handle_dns(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
+int handle_dns(u_char* args, const pcap_pkthdr* pkthdr, const u_char* packet)
 {
-  const struct ether_header *ethh;
-  const struct ip *iph;
-  const struct udphdr *udph;
-  const struct timeval ts = pkthdr->ts;
-  const struct dns_header *dnsh;
-  struct options *opts = (struct options*)(args);
+  const ether_header *ethh;
+  const ip *iph;
+  const udphdr *udph;
+  const timeval ts = pkthdr->ts;
+  const dns_header *dnsh;
+  options *opts = (options*)(args);
   int size_ip;
   int size_udp;
   int size_payload;
@@ -443,17 +449,17 @@ int handle_dns(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pac
   const char *req_dns_str;
   char req_str[1024] = "";
 
-  ethh=(struct ether_header*)(packet);
-  iph=(struct ip*)(packet+14); /* sizeof(struct ether_header) */
+  ethh=(ether_header*)(packet);
+  iph=(ip*)(packet+14); /* sizeof(ether_header) */
   size_ip = IP_HL(iph)*4;
   size_udp = 8;
 
-  udph=(struct udphdr*)(packet+SIZE_ETHER+size_ip);
+  udph=(udphdr*)(packet+SIZE_ETHER+size_ip);
 
   payload=(const char *)(packet + SIZE_ETHER + size_ip + size_udp);
   size_payload = ntohs(iph->ip_len) - (size_ip + size_udp);
 
-  dnsh = (struct dns_header*)(payload);
+  dnsh = (dns_header*)(payload);
 
   if (dnsh->qr == 0)
   {
@@ -479,9 +485,9 @@ int handle_dns(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pac
   return 1;
 }
 
-int print_ftp_timings(struct options *opts,struct ftptimer *tm)
+int print_ftp_timings(options *opts,ftptimer *tm)
 {
-  struct timeval tmp;
+  timeval tmp;
   char timestr[64];
   timeval_subtract(&tmp,&(tm->ack),&(tm->start));
   snprintf(timestr,63,"%ld.%.6ld",tmp.tv_sec,(long)tmp.tv_usec);
@@ -493,22 +499,22 @@ int print_ftp_timings(struct options *opts,struct ftptimer *tm)
   return 1;
 }
 
-int handle_ftp(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
+int handle_ftp(u_char* args, const pcap_pkthdr* pkthdr, const u_char* packet)
 {
-  const struct ether_header *ethh;
-  const struct ip *iph;
-  const struct tcphdr *tcph;
-  const struct timeval ts = pkthdr->ts;
-  struct options *opts = (struct options*)(args);
+  const ether_header *ethh;
+  const ip *iph;
+  const tcphdr *tcph;
+  const timeval ts = pkthdr->ts;
+  options *opts = (options*)(args);
   int size_ip;
   int size_tcp;
   int size_payload;
   const char *payload;
 
-  ethh=(struct ether_header*)(packet);
-  iph=(struct ip*)(packet+14); /* sizeof(struct ether_header) */
+  ethh=(ether_header*)(packet);
+  iph=(ip*)(packet+14); /* sizeof(ether_header) */
   size_ip = IP_HL(iph)*4;
-  tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
+  tcph = (tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
   payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
@@ -545,9 +551,9 @@ int handle_ftp(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pac
 }
 
 
-int print_cifs_timings(struct options *opts,struct cifstimer *tm)
+int print_cifs_timings(options *opts,cifstimer *tm)
 {
-  struct timeval tmp;
+  timeval tmp;
   long unsigned int a,b;
   char timestr[64];
 
@@ -591,13 +597,13 @@ int print_cifs_timings(struct options *opts,struct cifstimer *tm)
   return 1;
 }
 
-int handle_cifs(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
+int handle_cifs(u_char* args, const pcap_pkthdr* pkthdr, const u_char* packet)
 {
-  const struct ether_header *ethh;
-  const struct ip *iph;
-  const struct tcphdr *tcph;
-  const struct timeval ts = pkthdr->ts;
-  struct options *opts = (struct options*)(args);
+  const ether_header *ethh;
+  const ip *iph;
+  const tcphdr *tcph;
+  const timeval ts = pkthdr->ts;
+  options *opts = (options*)(args);
   int size_ip;
   int size_tcp;
   int size_payload;
@@ -605,10 +611,10 @@ int handle_cifs(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   const char *payload;
   const char *smbptr;
 
-  ethh=(struct ether_header*)(packet);
-  iph=(struct ip*)(packet+14); /* sizeof(struct ether_header) */
+  ethh=(ether_header*)(packet);
+  iph=(ip*)(packet+14); /* sizeof(ether_header) */
   size_ip = IP_HL(iph)*4;
-  tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
+  tcph = (tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
   payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
@@ -674,9 +680,9 @@ int handle_cifs(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   return 1;
 }
 
-int print_mapi_timings(struct options *opts,struct mapitimer *tm)
+int print_mapi_timings(options *opts,mapitimer *tm)
 {
-  struct timeval tmp;
+  timeval tmp;
   //double avg_chain;
   char timestr[64];
 
@@ -697,13 +703,13 @@ int print_mapi_timings(struct options *opts,struct mapitimer *tm)
   return 1;
 }
 
-int handle_mapi(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
+int handle_mapi(u_char* args, const pcap_pkthdr* pkthdr, const u_char* packet)
 {
-  const struct ether_header *ethh;
-  const struct ip *iph;
-  const struct tcphdr *tcph;
-  const struct timeval ts = pkthdr->ts;
-  struct options *opts = (struct options*)(args);
+  const ether_header *ethh;
+  const ip *iph;
+  const tcphdr *tcph;
+  const timeval ts = pkthdr->ts;
+  options *opts = (options*)(args);
   int size_ip;
   int size_tcp;
   int size_payload;
@@ -711,10 +717,10 @@ int handle_mapi(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   const char *payload;
   //long unsigned int begin,end;
 
-  ethh=(struct ether_header*)(packet);
-  iph=(struct ip*)(packet+14); /* sizeof(struct ether_header) */
+  ethh=(ether_header*)(packet);
+  iph=(ip*)(packet+14); /* sizeof(ether_header) */
   size_ip = IP_HL(iph)*4;
-  tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
+  tcph = (tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
   payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
@@ -768,14 +774,14 @@ int handle_mapi(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   return 1;
 }
 
-int handle_udp(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
+int handle_udp(u_char* args, const pcap_pkthdr* pkthdr, const u_char* packet)
 {
-  const struct ip *iph=(struct ip*)(packet+14);
-  const struct udphdr *udph;
+  const ip *iph=(ip*)(packet+14);
+  const udphdr *udph;
   int size_ip;
 
   size_ip = IP_HL(iph)*4;
-  udph=(struct udphdr*)(packet+SIZE_ETHER+size_ip);
+  udph=(udphdr*)(packet+SIZE_ETHER+size_ip);
 
   if((ntohs(udph->dest) == 53) || ntohs(udph->source) == 53)
   {
@@ -784,9 +790,9 @@ int handle_udp(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pac
   return 1;
 }
 
-int handle_tcp(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
+int handle_tcp(u_char* args, const pcap_pkthdr* pkthdr, const u_char* packet)
 {
-  struct options *opts = (struct options*)(args);
+  options *opts = (options*)(args);
 
   if (strcmp(opts->protocol,"HTTP")==0 || strcmp(opts->protocol,"REST")==0 || 
       strcmp(opts->protocol,"GET(REST)")==0 || strcmp(opts->protocol,"POST(REST)")==0 || 
@@ -811,9 +817,9 @@ int handle_tcp(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pac
 }
 
 
-void my_callback(u_char *args,const struct pcap_pkthdr* pkthdr,const u_char* packet)
+void my_callback(u_char *args,const pcap_pkthdr* pkthdr,const u_char* packet)
 {
-  const struct ip *iph=(struct ip*)(packet+sizeof(struct ether_header));
+  const ip *iph=(ip*)(packet+sizeof(ether_header));
 
   if (iph->ip_p == IPPROTO_TCP)
   {
@@ -830,12 +836,12 @@ int main(int argc,char **argv)
     char *dev; 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* descr;
-    struct bpf_program fp;
+    bpf_program fp;
     bpf_u_int32 maskp;
     bpf_u_int32 netp;
-    struct options opts = {"","",{0}};
+    options opts = {"","",{0}};
     char selfip[INET_ADDRSTRLEN];
-    struct ifaddrs *ifaddrstruct=NULL,*tmpaddr;
+    ifaddrs *ifaddrstruct=NULL,*tmpaddr;
 
     if(argc < 2)
     {
@@ -862,7 +868,7 @@ int main(int argc,char **argv)
     {
       if(ifaddrstruct->ifa_addr->sa_family==AF_INET && strcmp(ifaddrstruct->ifa_name,dev)==0)
       {
-        opts.selfaddr=((struct sockaddr_in *)ifaddrstruct->ifa_addr)->sin_addr;
+        opts.selfaddr=((sockaddr_in *)ifaddrstruct->ifa_addr)->sin_addr;
       }
       ifaddrstruct=ifaddrstruct->ifa_next;
     }
