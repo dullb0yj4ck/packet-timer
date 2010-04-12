@@ -66,7 +66,7 @@ NetworkDevice::getCaptureDescriptor(int aBufferSize,
                                     bool aSuperCareful)
 {
     SharedCaptureDescriptorTS rCaptureDescriptor;
-    rCaptureDescriptor.reset(new CaptureDescriptor(_PCAPNetworkingDevice,
+    rCaptureDescriptor.reset(new CaptureDescriptor(_PCAPNetworkDevice,
                                                    aBufferSize,
                                                    aPromiscuous,
                                                    aReadTimeoutInMilliseconds,
@@ -82,8 +82,8 @@ NetworkDevice::lookUpNetwork(bpf_u_int32 * aLocalNetwork,
     char tErrorBuffer[PCAP_ERRBUF_SIZE];
     tErrorBuffer[0] = 0;
 
-    if(pcap_lookupnet(_PCAPNetworkingDevice,
-                      aLocalSubnet,
+    if(pcap_lookupnet(_PCAPNetworkDevice,
+                      aLocalNetwork,
                       aSubnetMask,
                       tErrorBuffer) == -1)
     {

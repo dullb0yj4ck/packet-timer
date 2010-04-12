@@ -29,6 +29,7 @@
 
 // our includes
 #include<pcapp/capture_descriptor.h>
+#include<pcapp/network_device.h>
 
 // api includes
 
@@ -64,15 +65,15 @@ class Test : public CxxTest::TestSuite
         try
         {
             // first get device
-            NetworkDevice tNetworkingDevice();
+            NetworkDevice tNetworkDevice;
             
             // then get network
             bpf_u_int32 tLocalSubnet;
             bpf_u_int32 tSubnetMask;
-            tNetworkDevice.lookUpNetwork(tLocalSubnet, tSubnetMask);
+            tNetworkDevice.lookUpNetwork(&tLocalSubnet, &tSubnetMask);
             
             SharedCaptureDescriptorTS tCaptureDescriptor = 
-                tNetworkingDevice.getCaptureDescriptor(BUFSIZ);
+                tNetworkDevice.getCaptureDescriptor(BUFSIZ);
             
             tCaptureDescriptor->compileFilter("host www.google.com",
                                               tSubnetMask);

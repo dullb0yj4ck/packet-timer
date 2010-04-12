@@ -5,7 +5,8 @@ ENDMACRO(ADD_AGENT_EXECUTABLE)
 
 
 SET(SRC_FILES
-  capture_descriptor.cxx)
+  capture_descriptor.cxx
+  network_device.cxx)
 
 # make a shared library for delta, else a static one
 IF(DEFINED USE_STATIC_LIBS OR LIB_SYSSHEP_BUILD_MODE STREQUAL "agent")

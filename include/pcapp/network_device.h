@@ -81,10 +81,9 @@ namespace pcapp
             
     private:
         /// pcap networking device string
-        char * _PCAPNetworkDevice
+        char * _PCAPNetworkDevice;
 
     };
-
 }
 
 #endif

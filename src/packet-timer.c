@@ -887,7 +887,7 @@ int main(int argc,char **argv)
         if(pcap_compile(descr,&fp,argv[3],0,netp) == -1)
         { fprintf(stderr,"Error calling pcap_compile\n"); exit(1); }
 
-        printf("Compiled pcap program\n");y
+        printf("Compiled pcap program\n");
         /* set the compiled program as the filter */
         if(pcap_setfilter(descr,&fp) == -1)
         { fprintf(stderr,"Error setting filter\n"); exit(1); }
