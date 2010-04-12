@@ -28,17 +28,18 @@
 #define PCAP_TEST_H
 
 // our includes
+#include<pcapp/capture_descriptor.h>
 
 // api includes
 
 // tp includes
-#include<pcap.h>
+//#include<pcap.h>
 
 // std includes
 #include<cstdlib>
 #include<cstring>
 
-//using namespace mon;
+using namespace pcapp;
 
 //#############################################################################
 class Test : public CxxTest::TestSuite
@@ -60,128 +61,33 @@ class Test : public CxxTest::TestSuite
         std::cout<<std::endl<<std::endl;
         std::cout<<"Testing PCAP"<<std::endl<<std::endl;
 
-        // set up pcap
-        char tErrorBuffer[PCAP_ERRBUF_SIZE];
-        
-        // first get device
-        tErrorBuffer[0] = 0;
-        char * tNetworkingDevice = pcap_lookupdev(tErrorBuffer);
-        if(tNetworkingDevice != NULL)
+        try
         {
-            std::cout<<"pcap found networking device: "
-                     <<tNetworkingDevice<<std::endl;
-            if(strlen(tErrorBuffer) == 0)
-            {
-                std::cout<<"without warnings"<<std::endl;
-            }
-            else
-            {
-                std::cout<<"with warning: "<<tErrorBuffer<<std::endl;
-            }
+            // first get device
+            NetworkDevice tNetworkingDevice();
+            
             // then get network
             bpf_u_int32 tLocalSubnet;
             bpf_u_int32 tSubnetMask;
-            tErrorBuffer[0] = 0;
-            int tLookupResult = pcap_lookupnet(tNetworkingDevice,
-                                               &tLocalSubnet,
-                                               &tSubnetMask,
-                                               tErrorBuffer);
+            tNetworkDevice.lookUpNetwork(tLocalSubnet, tSubnetMask);
             
-            if(tLookupResult >= 0)
-            {
-                std::cout<<"pcap network lookup successfull"<<std::endl;
-                std::cout<<"Local Subnet: "<<tLocalSubnet<<std::endl;
-                std::cout<<"Local Subnet Mask: "<<tSubnetMask<<std::endl;
-
-                if(strlen(tErrorBuffer) == 0)
-                {
-                    std::cout<<"without warnings"<<std::endl;
-                }
-                else
-                {
-                    std::cout<<"with warning: "<<tErrorBuffer<<std::endl;
-                }
-                tErrorBuffer[0] = 0;
-                
-                pcap_t * tPacketCaptureDescriptor = 
-                    pcap_open_live(tNetworkingDevice,
-                                   BUFSIZ,
-                                   1,
-                                   2000, 
-                                   tErrorBuffer);
-                if(tPacketCaptureDescriptor != NULL)
-                {
-                    std::cout<<"pcap opened capture descriptor ";
-                    if(strlen(tErrorBuffer) == 0)
-                    {
-                        std::cout<<"without warnings"<<std::endl;
-                    }
-                    else
-                    {
-                        std::cout<<"with warning: "<<tErrorBuffer<<std::endl;
-                    }
-
-
-                    bpf_program tFilterCode;
-                    
-                    
-                    if(pcap_compile(tPacketCaptureDescriptor,
-                                    &tFilterCode,
-                                    "host www.google.com",
-                                    0,
-                                    tSubnetMask) != -1)
-                    {
-                        std::cout<<"pcap compiled filter"<<std::endl;
-                        
-                        if(pcap_setfilter(tPacketCaptureDescriptor,
-                                          &tFilterCode) != -1)
-                        {
-                            std::cout<<"pcap filter set"<<std::endl;
-                            std::string * tString =
-                                new std::string("Sample Argument");
-                            
-                            pcap_loop(tPacketCaptureDescriptor,
-                                      120,
-                                      pcapCallback,
-                                      (u_char *)tString);
-                        } 
-                        else
-                        {
-                            std::cout<<"Couldn't set pcap filter: "
-                                     <<pcap_geterr(tPacketCaptureDescriptor)
-                                     <<std::endl;
-                        }
-                    }
-                    else
-                    {
-                        std::cout<<"Couldn't compile filter expression"
-                                 <<pcap_geterr(tPacketCaptureDescriptor)
-                                 <<std::endl;
-                    }
-                }
-                else
-                {
-                    std::cout<<"pcap failed to open capture descriptor: "
-                             <<tErrorBuffer<<std::endl;
-                }
-            }
-            else
-            {
-                std::cout<<"pcap network lookup failed with error: "
-                         <<tErrorBuffer<<std::endl;
-            }
-        }
-        else
+            SharedCaptureDescriptorTS tCaptureDescriptor = 
+                tNetworkingDevice.getCaptureDescriptor(BUFSIZ);
+            
+            tCaptureDescriptor->compileFilter("host www.google.com",
+                                              tSubnetMask);
+            
+            std::string * tString = new std::string("Sample Argument");
+            u_char * tPointer = (u_char *)tString;
+            
+            tCaptureDescriptor->runLoop(120, pcapCallback, tPointer);
+            
+        } 
+        catch(const std::runtime_error & eProblem)
         {
-            std::cout<<"pcap coudln't find device.  Error: "
-                     <<tErrorBuffer<<std::endl;
+            std::cout<<"Problem occurred: "
+                     <<eProblem.what()<<std::endl;
         }
-        
-
-
-        // remember to free networking device
-        // .. somehow, but apparently not like this
-        //free(tNetworkingDevice);
     }
 
  protected:

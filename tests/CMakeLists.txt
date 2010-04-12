@@ -12,6 +12,7 @@ foreach(CLASS pcap)
   add_executable(${CLASS}_testRunner
     ${CMAKE_CURRENT_SOURCE_DIR}/${CLASS}_testRunner.cpp)
   add_sysshep_libs(${CLASS}_testRunner)
+  target_link_libraries(${CLASS}_testRunner pcapp)
   #Add tests 
   add_test(${CLASS}_Test
     ${EXECUTABLE_OUTPUT_PATH}/${CLASS}_testRunner)
