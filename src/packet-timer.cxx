@@ -170,6 +170,30 @@ struct cifstimer* new_cifs_timer(const char* label)
   return tm;
 }
 
+/* from the glibc manual */
+int timeval_subtract (struct timeval *result, struct timeval *x, struct timeval *y)
+{
+  /* Perform the carry for the later subtraction by updating y. */
+  if (x->tv_usec < y->tv_usec) {
+    int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
+    y->tv_usec -= 1000000 * nsec;
+    y->tv_sec += nsec;
+  }
+  if (x->tv_usec - y->tv_usec > 1000000) {
+    int nsec = (y->tv_usec - x->tv_usec) / 1000000;
+    y->tv_usec += 1000000 * nsec;
+    y->tv_sec -= nsec;
+  }
+
+  /* Compute the time remaining to wait.
+     tv_usec is certainly positive. */
+  result->tv_sec = x->tv_sec - y->tv_sec;
+  result->tv_usec = x->tv_usec - y->tv_usec;
+
+  /* Return 1 if result is negative. */
+  return x->tv_sec < y->tv_sec;
+}
+
 int print_http_timings(struct options *opts,struct httptimer *tm)
 {
   struct timeval tmp;
@@ -195,7 +219,7 @@ int print_http_timings(struct options *opts,struct httptimer *tm)
 int dns_q_to_str(const char* dns,char* str)
 {
   char x=dns[0];
-  char *pt=dns;
+  const char *pt=dns;
   char size=0;
 
   while (x != 0)
@@ -313,30 +337,6 @@ void print_payload(const u_char *payload, int len)
   return;
 }
 
-/* from the glibc manual */
-int timeval_subtract (struct timeval *result, struct timeval *x, struct timeval *y)
-{
-  /* Perform the carry for the later subtraction by updating y. */
-  if (x->tv_usec < y->tv_usec) {
-    int nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
-    y->tv_usec -= 1000000 * nsec;
-    y->tv_sec += nsec;
-  }
-  if (x->tv_usec - y->tv_usec > 1000000) {
-    int nsec = (y->tv_usec - x->tv_usec) / 1000000;
-    y->tv_usec += 1000000 * nsec;
-    y->tv_sec -= nsec;
-  }
-
-  /* Compute the time remaining to wait.
-     tv_usec is certainly positive. */
-  result->tv_sec = x->tv_sec - y->tv_sec;
-  result->tv_usec = x->tv_usec - y->tv_usec;
-
-  /* Return 1 if result is negative. */
-  return x->tv_sec < y->tv_sec;
-}
-
 int handle_http(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* packet)
 {
   const struct ether_header *ethh;
@@ -356,7 +356,7 @@ int handle_http(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
-  payload=(u_char *)(packet + SIZE_ETHER + size_ip + size_tcp);
+  payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
   size_payload = ntohs(iph->ip_len) - (size_ip + size_tcp);
  
   if((tcph->syn) && !(tcph->ack) && (size_payload == 0) && (opts->selfaddr.s_addr != iph->ip_dst.s_addr))
@@ -450,7 +450,7 @@ int handle_dns(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pac
 
   udph=(struct udphdr*)(packet+SIZE_ETHER+size_ip);
 
-  payload=(u_char *)(packet + SIZE_ETHER + size_ip + size_udp);
+  payload=(const char *)(packet + SIZE_ETHER + size_ip + size_udp);
   size_payload = ntohs(iph->ip_len) - (size_ip + size_udp);
 
   dnsh = (struct dns_header*)(payload);
@@ -511,7 +511,7 @@ int handle_ftp(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pac
   tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
-  payload=(u_char *)(packet + SIZE_ETHER + size_ip + size_tcp);
+  payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
   size_payload = ntohs(iph->ip_len) - (size_ip + size_tcp);
 
   if((tcph->syn) && !(tcph->ack) && (size_payload == 0))
@@ -603,7 +603,7 @@ int handle_cifs(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   int size_payload;
   char incoming;
   const char *payload;
-  char *smbptr;
+  const char *smbptr;
 
   ethh=(struct ether_header*)(packet);
   iph=(struct ip*)(packet+14); /* sizeof(struct ether_header) */
@@ -611,7 +611,7 @@ int handle_cifs(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
-  payload=(u_char *)(packet + SIZE_ETHER + size_ip + size_tcp);
+  payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
   size_payload = ntohs(iph->ip_len) - (size_ip + size_tcp);
 
   if(opts->selfaddr.s_addr == iph->ip_dst.s_addr)
@@ -677,7 +677,7 @@ int handle_cifs(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
 int print_mapi_timings(struct options *opts,struct mapitimer *tm)
 {
   struct timeval tmp;
-  double avg_chain;
+  //double avg_chain;
   char timestr[64];
 
   timeval_subtract(&tmp,&(tm->ack),&(tm->start));
@@ -709,7 +709,7 @@ int handle_mapi(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   int size_payload;
   char incoming;
   const char *payload;
-  long unsigned int begin,end;
+  //long unsigned int begin,end;
 
   ethh=(struct ether_header*)(packet);
   iph=(struct ip*)(packet+14); /* sizeof(struct ether_header) */
@@ -717,7 +717,7 @@ int handle_mapi(u_char* args, const struct pcap_pkthdr* pkthdr, const u_char* pa
   tcph = (struct tcphdr*)(packet+SIZE_ETHER+size_ip);
   size_tcp= tcph->doff*4;
 
-  payload=(u_char *)(packet + SIZE_ETHER + size_ip + size_tcp);
+  payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
   size_payload = ntohs(iph->ip_len) - (size_ip + size_tcp);
 
   if(opts->selfaddr.s_addr == iph->ip_dst.s_addr)

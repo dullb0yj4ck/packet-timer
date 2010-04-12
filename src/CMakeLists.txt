@@ -20,8 +20,8 @@ ELSE(DEFINED USE_STATIC_LIBS OR LIB_SYSSHEP_BUILD_MODE STREQUAL "agent")
 ENDIF(DEFINED USE_STATIC_LIBS OR LIB_SYSSHEP_BUILD_MODE STREQUAL "agent")
 
 
-# Unix Packed Timer
+# Cxx Packed Timer
 IF (UNIX)
-  ADD_AGENT_EXECUTABLE(packet-timer
-    packet-timer.c)
+  ADD_AGENT_EXECUTABLE(packet-timerxx
+    packet-timer.cxx)
 ENDIF (UNIX)
