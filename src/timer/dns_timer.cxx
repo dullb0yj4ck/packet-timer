@@ -91,25 +91,28 @@ DNSTimer::handleData(Options *opts,
     size_payload = ntohs(iph->ip_len) - (size_ip + size_udp);
     
     dnsh = (dns_header*)(payload);
-    
-    if (dnsh->qr == 0)
+
+    if(!_StartTime.isSet())
     {
-        req_dns_str=payload+12;
-        dns_q_to_str(req_dns_str,req_str);
-        if (strcmp(req_str,opts->label)==0)
+        if (dnsh->qr == 0)
         {
-            _Label = opts->label;
-            _ID = dnsh->id;
-            _StartTime = ts;
+            req_dns_str=payload+12;
+            dns_q_to_str(req_dns_str,req_str);
+            if (strcmp(req_str,opts->label)==0)
+            {
+                _Label = opts->label;
+                _ID = dnsh->id;
+                _StartTime = ts;
+            }
         }
     }
-    if ((dnsh->qr == 1) && (dnsh->ancount > 0))
+    else if ((dnsh->qr == 1) && (dnsh->ancount > 0))
     {
-        if (_StartTime.isSet() && (dnsh->id == _ID))
+        if ((dnsh->id == _ID))
         {
             _TimeOfAuthentication = ts;
             printTimings(*opts);
-
+            
             _Label = "";
             _ID = 0;
             _StartTime.clear();

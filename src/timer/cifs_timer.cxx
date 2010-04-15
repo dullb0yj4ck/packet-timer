@@ -104,55 +104,51 @@ CIFSTimer::handleData(Options *opts,
         incoming = 0;
     } 
 
-    
-    if((tcph->syn) && !(tcph->ack) && (size_payload == 0) && (! incoming))
+    if(!_StartTime.isSet())
     {
-        _Label =  "All";
-        _StartTime = ts;
+        if((tcph->syn) && !(tcph->ack) && (size_payload == 0) && (! incoming))
+        {
+            _Label =  "All";
+            _StartTime = ts;
+        }
     }
-    
-    if((size_payload == 0) && (tcph->ack) && !(tcph->syn) && (! incoming))
+    else if(!_AckTime.isSet())
     {
-        if(_AckTime.tv_sec == 0)
+        if((size_payload == 0) && (tcph->ack) && !(tcph->syn) && (! incoming))
         {
             _AckTime = ts;
         }
     }
-    
-    if((size_payload > 0) && (! incoming))
+    else if(!_Send72Time.isSet() || !_Recv72Time.isSet())
     {
-        smbptr = &(payload[5]);
-        if((strncmp(smbptr,"SMB",3)==0) &&( payload[8] == 0x72))
+        if((size_payload > 0) && (! incoming))
         {
-            if(_Send72Time.tv_sec == 0)
+            smbptr = &(payload[5]);
+            if((strncmp(smbptr,"SMB",3)==0) &&( payload[8] == 0x72))
             {
-                _Send72Time = ts;
+                if(_Send72Time.tv_sec == 0)
+                {
+                    _Send72Time = ts;
+                }
+            }
+        }
+        if((size_payload > 0) && (incoming))
+        {
+            smbptr = &(payload[5]);
+            if((strncmp(smbptr,"SMB",3)==0) &&( payload[8] == 0x72))
+            {
+                if(_Recv72Time.tv_sec == 0)
+                {
+                    _Recv72Time = ts;
+                }
             }
         }
     }
-    
-    if((size_payload > 0) && (incoming))
+    else if((size_payload == 0) && (tcph->fin) && (tcph->ack) && (!incoming))
     {
-        smbptr = &(payload[5]);
-        if((strncmp(smbptr,"SMB",3)==0) &&( payload[8] == 0x72))
-        {
-            if(_Recv72Time.tv_sec == 0)
-            {
-                _Recv72Time = ts;
-            }
-        }
-    }
-    
-    if((size_payload == 0) && (tcph->fin) && (tcph->ack) && (!incoming))
-    {
-        // if start time not set, we started sniffing in the middle of a
-        // request.  Ignore this one.
-        if(_FinTime.tv_sec == 0 && _StartTime.isSet())
-        {
-            _FinTime = ts;
-            printTimings(*opts);
-        }
-        
+        _FinTime = ts;
+        printTimings(*opts);
+
         _Label = "";
         _StartTime.clear();
         _AckTime.clear();

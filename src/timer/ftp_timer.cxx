@@ -86,17 +86,20 @@ FTPTimer::handleData(Options *opts,
     
     payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
     size_payload = ntohs(iph->ip_len) - (size_ip + size_tcp);
-    
-    if((tcph->syn) && !(tcph->ack) && (size_payload == 0))
+
+    if(!_StartTime.isSet())
     {
-        _StartTime = ts;
+        if((tcph->syn) && !(tcph->ack) && (size_payload == 0))
+        {
+            _StartTime = ts;
+        }
     }
-    else if((size_payload == 0) && 
-            (tcph->ack) && 
-            !(tcph->syn) &&
-            (opts->selfaddr.s_addr == iph->ip_dst.s_addr))
+    else if(!_AckTime.isSet())
     {
-        if(_AckTime.tv_sec == 0)
+        if((size_payload == 0) && 
+           (tcph->ack) && 
+           !(tcph->syn) &&
+           (opts->selfaddr.s_addr == iph->ip_dst.s_addr))
         {
             _AckTime = ts;
         }
@@ -104,14 +107,8 @@ FTPTimer::handleData(Options *opts,
     else if((opts->selfaddr.s_addr == iph->ip_dst.s_addr) && 
             (strncmp(payload,"221 ",4) == 0))
     {
-        // if start time's not set we started sniffing in the middle of a 
-        // request and need to clear to prep for the next one
-        if(_StartTime.isSet() &&
-           _EndTime.tv_sec == 0)
-        {
-            _EndTime = ts;
-            printTimings(*opts);
-        }
+        _EndTime = ts;
+        printTimings(*opts);
         
         _StartTime.clear();
         _AckTime.clear();

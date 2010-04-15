@@ -75,6 +75,18 @@ NetworkDevice::getCaptureDescriptor(int aBufferSize,
 }
 
 //#############################################################################
+std::string
+NetworkDevice::getName() const
+{
+    std::string rName("");
+    if(_PCAPNetworkDevice != NULL)
+    {
+        rName = _PCAPNetworkDevice;
+    }
+    return rName;
+}
+
+//#############################################################################
 void
 NetworkDevice::lookUpNetwork(bpf_u_int32 * aLocalNetwork,
                              bpf_u_int32 * aSubnetMask)

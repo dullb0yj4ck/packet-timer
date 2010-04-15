@@ -102,52 +102,56 @@ MAPITimer::handleData(Options *opts,
         incoming = 0;
     } 
     
-    
-    if(!incoming && size_payload == 0 && tcph->syn && (! tcph->ack))
+
+    if(!_StartTime.isSet())
     {
-        if(!_StartTime.isSet())
+        if(!incoming && size_payload == 0 && tcph->syn && (! tcph->ack))
         {
             _Label = "Exchange\0";
             _StartTime = ts;
         }
     }
-    if(!incoming && size_payload == 0 && tcph->ack && (! tcph->syn))
+    else if(!_AckTime.isSet())
     {
-        if(!_AckTime.isSet())
+        if(!incoming && size_payload == 0 && tcph->ack && (! tcph->syn))
         {
             _AckTime = ts;
         }
     }
-    if(size_payload > 0 && payload[0] == 0x05 && payload[1] == 0x00
-       && payload[48] == 0x01 && _StartTime.isSet())
+    else if(!_DCE1RequestTime.isSet())
     {
-        _ChainCount++;
-        _NewDCEChainTime = ts;
-        if(!_DCE1RequestTime.isSet())
+        if(size_payload > 0 && 
+           payload[0] == 0x05 && 
+           payload[1] == 0x00 &&
+           payload[48] == 0x01)
         {
+            _ChainCount++;
+            _NewDCEChainTime = ts;
             _DCE1RequestTime = ts;
         }
-        else if(!_DCE1ResponseTime.isSet())
+    }
+    else if(!_DCE1ResponseTime.isSet())
+    {
+        if(size_payload > 0 &&
+           payload[0] == 0x05 &&
+           payload[1] == 0x00 &&
+           payload[48] == 0x01)
         {
+            _ChainCount++;
+            _NewDCEChainTime = ts;
             _DCE1ResponseTime = ts;
         }
     }
-    
-    if((!incoming) && 
-       (size_payload == 0) && 
-       (tcph->fin) &&
-       (ntohs(tcph->source) != 135) &&
-       (ntohs(tcph->source) != 135 ))
+    else if((!incoming) && 
+            (size_payload == 0) && 
+            (tcph->fin) &&
+            (ntohs(tcph->source) != 135) &&
+            (ntohs(tcph->source) != 135 ))
     {
-        // else we started sniffing in the middle of a request, reset and 
-        // wait for next request to start.
-        if(_StartTime.isSet())
-        {
-            /*begin=cur_mapi_timer->newdcechain.tv_sec*1000000 + cur_mapi_timer->newdcechain.tv_usec;*/
-            /*end = (ts.tv_sec*1000000+ts.tv_usec) - begin;*/
-            /*(cur_mapi_timer->chain_duration) += end;*/
-            printTimings(*opts);
-        }
+        /*begin=cur_mapi_timer->newdcechain.tv_sec*1000000 + cur_mapi_timer->newdcechain.tv_usec;*/
+        /*end = (ts.tv_sec*1000000+ts.tv_usec) - begin;*/
+        /*(cur_mapi_timer->chain_duration) += end;*/
+        printTimings(*opts);
 
         _Label = "";
         _StartTime.clear();

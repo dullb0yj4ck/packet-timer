@@ -88,64 +88,57 @@ HTTPTimer::handleData(Options *opts,
     payload=(const char *)(packet + SIZE_ETHER + size_ip + size_tcp);
     size_payload = ntohs(iph->ip_len) - (size_ip + size_tcp);
     
-    if((tcph->syn) &&
-       !(tcph->ack) &&
-       (size_payload == 0) &&
-       (opts->selfaddr.s_addr != iph->ip_dst.s_addr))
+
+    if(!_StartTime.isSet())
     {
-        _StartTime = ts;
+        if((tcph->syn) &&
+           !(tcph->ack) && 
+           (size_payload == 0) &&
+           (opts->selfaddr.s_addr != iph->ip_dst.s_addr))
+        {
+            _StartTime = ts;
+        }
     }
-    
-    if((size_payload == 0) && 
-       (tcph->ack) &&
-       !(tcph->syn) &&
-       (opts->selfaddr.s_addr != iph->ip_dst.s_addr))
+    else if(!_AckTime.isSet())
     {
-        if(_AckTime.tv_sec == 0)
+        if((size_payload == 0) && 
+            (tcph->ack) &&
+           !(tcph->syn) &&
+           (opts->selfaddr.s_addr != iph->ip_dst.s_addr))
         {
             _AckTime = ts;
         }
     }
-    
-    else if((strncmp(payload,"GET ",4) == 0) &&
-            (_SendTime.tv_sec == 0))
+    else if(!_SendTime.isSet())
     {
-        _Label = "GET";
-        _SendTime = ts;
+        if((strncmp(payload,"GET ",4) == 0))
+        {
+            _Label = "GET";
+            _SendTime = ts;
+        }
+        else if((strncmp(payload,"PUT ",4) == 0))
+        {
+            _Label = "PUT";
+            _SendTime = ts;
+        }
+        else if((strncmp(payload,"POST ",5) == 0))
+        {
+            _Label = "POST";
+            _SendTime = ts;
+        }
     }
-    
-    else if((strncmp(payload,"PUT ",4) == 0) &&
-            (_SendTime.tv_sec == 0))
+    else if(!_RecvTime.isSet())
     {
-        _Label = "PUT";
-        _SendTime = ts;
+        if ((strncmp(payload,"HTTP/1.",7) == 0) &&
+            (opts->selfaddr.s_addr == iph->ip_dst.s_addr))
+        {
+            _RecvTime = ts;
+        }
     }
-    
-    else if((strncmp(payload,"POST ",5) == 0) &&
-            (_SendTime.tv_sec == 0))
-    {
-        _Label = "POST";
-        _SendTime = ts;
-    }
-    
-    else if ((strncmp(payload,"HTTP/1.",7) == 0) &&
-             (opts->selfaddr.s_addr == iph->ip_dst.s_addr) &&
-             (_RecvTime.tv_sec == 0))
-    {
-        _RecvTime = ts;
-    }
-    
     else if(tcph->fin)
     {
-        // if start time not set, we started sniffing in the middle of a 
-        // request and can't print.  Reset to prep for the next request
-        // either way.
-        if(_StartTime.isSet() &&
-           _EndTime.tv_sec == 0)
-        {
-            _EndTime = ts;
-            printTimings(*opts);
-        }
+        _EndTime = ts;
+        printTimings(*opts);
 
         _Label="Other";
         _StartTime.clear();
@@ -180,7 +173,7 @@ HTTPTimer::printTimings(const Options & aOptions) const
     tmp = _EndTime - _RecvTime;
     std::cout<<"Net|Protocol|"<<aOptions.protocol
              <<"|Time|"<<_Label
-             <<"|Recv to Connection Close"<<tmp.format()<<std::endl;
+             <<"|Recv to Connection Close\t"<<tmp.format()<<std::endl;
 }
 
 //#############################################################################
